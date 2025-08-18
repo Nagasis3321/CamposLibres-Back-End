@@ -1,0 +1,8 @@
+# Archivo: .dockerignore
+
+node_modules
+dist
+.env
+Dockerfile
+.dockerignore
+npm-debug.log
