@@ -13,7 +13,7 @@ import appConfig from '../config/app.config';
           return {
             type: 'postgres',
             url: process.env.DATABASE_URL,
-            synchronize: false, // ¡Muy importante para producción!
+            synchronize: true, // ¡Muy importante para producción!
             autoLoadEntities: true,
             ssl: {
               rejectUnauthorized: false, // Requerido para conexiones a Render DB
