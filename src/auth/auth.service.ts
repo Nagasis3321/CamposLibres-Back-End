@@ -10,7 +10,6 @@ import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
-import { User } from '../users/entities/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -32,7 +31,9 @@ export class AuthService {
 
   async login(loginDto: LoginDto) {
     const { email, password } = loginDto;
-    const user = await this.usersService.findOneByEmail(email.toLocaleLowerCase());
+    const user = await this.usersService.findOneByEmail(
+      email.toLocaleLowerCase(),
+    );
 
     if (!user || !(await bcrypt.compare(password, user.password!))) {
       throw new UnauthorizedException('Credenciales incorrectas');
@@ -51,8 +52,7 @@ export class AuthService {
     let demoUser = await this.usersService.findOneByEmail(demoEmail);
 
     if (!demoUser) {
-      // Si el usuario demo no existe, lo creamos
-      const demoPassword = Math.random().toString(36).slice(-12); // Contraseña aleatoria segura
+      const demoPassword = Math.random().toString(36).slice(-12);
       demoUser = await this.usersService.create({
         nombre: 'Usuario Demo',
         email: demoEmail,
@@ -66,5 +66,11 @@ export class AuthService {
     const accessToken = this.jwtService.sign(payload);
 
     return { accessToken, user: userProfile };
+  }
+
+  // --- NUEVO MÉTODO PARA BORRAR USUARIO ---
+  async deleteUser(id: string): Promise<void> {
+    // Delega la lógica de borrado al servicio de usuarios.
+    await this.usersService.remove(id);
   }
 }

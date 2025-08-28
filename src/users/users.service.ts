@@ -1,4 +1,4 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
@@ -53,5 +53,15 @@ export class UsersService {
 
   async findOneById(id: string): Promise<User | null> {
     return this.userRepository.findOne({ where: { id } });
+  }
+
+  async remove(id: string): Promise<void> {
+    const result = await this.userRepository.delete(id);
+
+    // El método `delete` de TypeORM devuelve un objeto `DeleteResult`.
+    // La propiedad `affected` indica cuántas filas fueron eliminadas.
+    if (result.affected === 0) {
+      throw new NotFoundException(`Usuario con ID "${id}" no encontrado.`);
+    }
   }
 }
