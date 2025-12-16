@@ -1,0 +1,41 @@
+# Archivo: docker-compose.yml
+
+services:
+  # Servicio de la API de NestJS
+  api:
+    build:
+      context: .
+      target: builder 
+    container_name: campos_libres_api
+    command: npm run start:dev
+    ports:
+      - "3000:3000"
+    volumes:
+      # Sincroniza todo EXCEPTO node_modules
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - db
+    env_file:
+      - .env
+    environment:
+      - DOCKER_ENV=true
+      - DB_HOST=db
+    restart: unless-stopped
+
+  # Servicio de la Base de Datos PostgreSQL
+  db:
+    image: postgres:15-alpine
+    container_name: campos_libres_db
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
