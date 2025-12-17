@@ -21,30 +21,10 @@ export class AnimalsService {
     private readonly groupsService: GroupsService,
   ) {}
 
-  private validateSexoTipoConsistency(sexo: string, tipoAnimal: string): void {
-    const tiposMacho = ['Toro', 'Novillo', 'Ternero'];
-    const tiposHembra = ['Vaca', 'Vaquilla', 'Ternera'];
-
-    if (sexo === 'Macho' && !tiposMacho.includes(tipoAnimal)) {
-      throw new ForbiddenException(
-        `El tipo de animal "${tipoAnimal}" no corresponde con el sexo "Macho". Los tipos válidos para machos son: ${tiposMacho.join(', ')}.`
-      );
-    }
-
-    if (sexo === 'Hembra' && !tiposHembra.includes(tipoAnimal)) {
-      throw new ForbiddenException(
-        `El tipo de animal "${tipoAnimal}" no corresponde con el sexo "Hembra". Los tipos válidos para hembras son: ${tiposHembra.join(', ')}.`
-      );
-    }
-  }
-
   async create(
     createAnimalDto: CreateAnimalDto,
     currentUser: User,
   ): Promise<Animal> {
-    // Validar consistencia entre sexo y tipo
-    this.validateSexoTipoConsistency(createAnimalDto.sexo, createAnimalDto.tipoAnimal);
-
     let duenoId = currentUser.id;
 
     if (createAnimalDto.duenoId && createAnimalDto.duenoId !== currentUser.id) {
@@ -95,12 +75,6 @@ export class AnimalsService {
     userId: string,
   ): Promise<Animal> {
     const animal = await this.findOne(animalId, userId);
-    
-    // Si se está actualizando sexo o tipo, validar consistencia
-    const newSexo = updateDto.sexo || animal.sexo;
-    const newTipo = updateDto.tipoAnimal || animal.tipoAnimal;
-    this.validateSexoTipoConsistency(newSexo, newTipo);
-    
     Object.assign(animal, updateDto);
     return this.animalRepository.save(animal);
   }

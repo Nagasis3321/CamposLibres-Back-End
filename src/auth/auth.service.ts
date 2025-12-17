@@ -109,24 +109,31 @@ export class AuthService {
       
       // Crear animales de prueba (50 animales) usando repositorio directamente
       const animales: Animal[] = [];
-      const tiposAnimal = ['Vaca', 'Vaquilla', 'Ternero', 'Ternera', 'Novillo', 'Toro'];
+      // Tipos consistentes con sexo
+      const tiposMacho = ['Toro', 'Novillo', 'Ternero'];
+      const tiposHembra = ['Vaca', 'Vaquilla', 'Ternera'];
       const pelajes = ['Blanco/a', 'Valla', 'Valla Mocha', 'Colorada Mocha', 'Pampa', 'Negra Cara Blanca', 'Osco'];
-      const sexos = ['Hembra', 'Macho'];
       const razas = ['Holando', 'Jersey', 'Angus', 'Hereford', 'Brahman'];
 
       console.log('Creando 50 animales de prueba...');
       for (let i = 1; i <= 50; i++) {
         try {
-          const tipoIndex = Math.floor(Math.random() * tiposAnimal.length);
+          // Determinar sexo aleatoriamente
+          const esMacho = Math.random() < 0.5;
+          const sexo = esMacho ? 'Macho' : 'Hembra';
+          
+          // Elegir tipo consistente con el sexo
+          const tiposDisponibles = esMacho ? tiposMacho : tiposHembra;
+          const tipoAnimal = tiposDisponibles[Math.floor(Math.random() * tiposDisponibles.length)];
+          
           const pelajeIndex = Math.floor(Math.random() * pelajes.length);
-          const sexoIndex = Math.floor(Math.random() * sexos.length);
           const razaIndex = Math.floor(Math.random() * razas.length);
           
           const animalData = this.animalRepository.create({
             caravana: `DEMO-${String(i).padStart(3, '0')}`,
-            tipoAnimal: tiposAnimal[tipoIndex],
+            tipoAnimal: tipoAnimal,
             pelaje: pelajes[pelajeIndex],
-            sexo: sexos[sexoIndex],
+            sexo: sexo,
             raza: razas[razaIndex],
             fechaNacimiento: new Date(2020 + Math.floor(Math.random() * 4), Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1).toISOString().split('T')[0],
             dueno: userEntity,
