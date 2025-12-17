@@ -26,11 +26,14 @@ import {
     @Column({ type: 'varchar', nullable: true })
     productosUtilizados?: string;
   
-    @Column({ type: 'text', nullable: true })
-    observaciones?: string;
-  
-    @ManyToOne(() => User, (user) => user.campaigns, { nullable: true, onDelete: 'CASCADE' })
-    propietario?: User;
+  @Column({ type: 'text', nullable: true })
+  observaciones?: string;
+
+  @Column({ type: 'varchar', length: 50, default: 'Pendiente' })
+  estado: string;
+
+  @ManyToOne(() => User, (user) => user.campaigns, { nullable: true, onDelete: 'CASCADE' })
+  propietario?: User;
   
     @ManyToOne(() => Group, (group) => group.campaigns, { nullable: true, onDelete: 'CASCADE' })
     group?: Group;

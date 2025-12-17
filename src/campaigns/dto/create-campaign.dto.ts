@@ -17,6 +17,10 @@ export class CreateCampaignDto {
   @IsOptional()
   observaciones?: string;
 
+  @IsString()
+  @IsOptional()
+  estado?: string;
+
   @IsUUID()
   @IsOptional() // Si no se provee, es una campaña individual
   groupId?: string;

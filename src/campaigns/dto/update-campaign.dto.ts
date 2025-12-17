@@ -17,6 +17,10 @@ export class UpdateCampaignDto {
   @IsOptional()
   observaciones?: string;
 
+  @IsString()
+  @IsOptional()
+  estado?: string;
+
   @IsArray()
   @IsUUID('4', { each: true })
   @ArrayMinSize(1)
