@@ -92,7 +92,11 @@ export class AnimalsService {
       } else {
         const mother = await this.animalRepository.findOneBy({ id: relationsDto.idMadre });
         if (!mother) throw new NotFoundException('La madre especificada no existe.');
-        if (mother.sexo !== 'Hembra') throw new ForbiddenException('El animal especificado como madre no es hembra.');
+        if (mother.sexo !== 'Hembra') {
+          throw new ForbiddenException(
+            `El animal "${mother.caravana || mother.id}" (${mother.tipoAnimal}) tiene sexo "${mother.sexo}", pero debe ser "Hembra" para ser asignado como madre.`
+          );
+        }
         child.idMadre = mother.id;
       }
     }
@@ -103,7 +107,11 @@ export class AnimalsService {
       } else {
         const father = await this.animalRepository.findOneBy({ id: relationsDto.idPadre });
         if (!father) throw new NotFoundException('El padre especificado no existe.');
-        if (father.sexo !== 'Macho') throw new ForbiddenException('El animal especificado como padre no es macho.');
+        if (father.sexo !== 'Macho') {
+          throw new ForbiddenException(
+            `El animal "${father.caravana || father.id}" (${father.tipoAnimal}) tiene sexo "${father.sexo}", pero debe ser "Macho" para ser asignado como padre.`
+          );
+        }
         child.idPadre = father.id;
       }
     }

@@ -52,12 +52,29 @@ export class BirthsService {
       if (cria.dueno.id !== currentUser.id) {
         throw new ForbiddenException('No tienes permiso para asociar esta cría.');
       }
+    } else {
+      // Si no se especifica criaId, crear un nuevo animal automáticamente
+      const sexoCria = createDto.sexoCria || 'Macho';
+      const tipoAnimal = sexoCria === 'Hembra' ? 'Ternera' : 'Ternero';
+      
+      const newCria = this.animalRepository.create({
+        tipoAnimal: tipoAnimal,
+        pelaje: madre.pelaje, // Heredar pelaje de la madre por defecto
+        sexo: sexoCria,
+        fechaNacimiento: createDto.fecha,
+        idMadre: madre.id,
+        dueno: currentUser,
+        descripcion: `Cría registrada automáticamente el ${createDto.fecha}`,
+      });
+      
+      const savedCria = await this.animalRepository.save(newCria);
+      cria = savedCria;
     }
 
     const birth = this.birthRepository.create({
       ...createDto,
       madre: { id: createDto.madreId } as Animal,
-      cria: cria ? { id: createDto.criaId } as Animal : undefined,
+      cria: cria ? { id: cria.id } as Animal : undefined,
       usuario: currentUser,
       estado: createDto.estado || 'VIVO',
     });

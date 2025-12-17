@@ -11,7 +11,7 @@ export class UpdateAnimalDto {
   @IsOptional()
   caravana?: string;
 
-  @IsEnum(['Vaca', 'Vaquilla', 'Ternero/a', 'Novillo', 'Toro'])
+  @IsEnum(['Vaca', 'Vaquilla', 'Ternero', 'Ternera', 'Novillo', 'Toro'])
   @IsOptional()
   tipoAnimal?: string;
 
