@@ -73,21 +73,25 @@ export class AuthService {
     return { accessToken, user: userProfile };
   }
 
+  /** Contraseña fija para usuario demo y usuarios de prueba (documentada para pruebas). */
+  private static readonly DEMO_PASSWORD = 'Demo123!';
+
   async demoLogin() {
     const demoEmail = 'demo@example.com';
     let demoUser = await this.usersService.findOneByEmail(demoEmail);
     const isNewUser = !demoUser;
 
     if (!demoUser) {
-      const demoPassword = Math.random().toString(36).slice(-12);
       demoUser = await this.usersService.create({
         nombre: 'Usuario Demo',
         email: demoEmail,
-        password: demoPassword,
-      });
+        password: AuthService.DEMO_PASSWORD,
+      }) as User;
+      // Recargar para tener el usuario completo (p. ej. para createDemoData)
+      demoUser = await this.usersService.findOneByEmail(demoEmail) ?? demoUser;
     }
 
-    // Si es un usuario nuevo, crear datos de prueba
+    // Si es un usuario nuevo, crear datos de prueba (grupos, usuarios, 300+ animales)
     if (isNewUser) {
       await this.createDemoData(demoUser);
     }
@@ -100,126 +104,126 @@ export class AuthService {
     return { accessToken, user: userProfile };
   }
 
-  private async createDemoData(user: any): Promise<void> {
+  private async createDemoData(user: User): Promise<void> {
+    const userEntity = { id: user.id } as User;
+    const tiposMacho = ['Toro', 'Novillo', 'Ternero'];
+    const tiposHembra = ['Vaca', 'Vaquilla', 'Ternera'];
+    const pelajes = ['Blanco/a', 'Valla', 'Valla Mocha', 'Colorada Mocha', 'Pampa', 'Negra Cara Blanca', 'Osco', 'Barcina', 'Osca', 'Colorada', 'Baya'];
+    const razas = ['Holando', 'Jersey', 'Angus', 'Hereford', 'Brahman'];
+
+    const createAnimalesForUser = async (owner: User, count: number, prefix: string): Promise<Animal[]> => {
+      const list: Animal[] = [];
+      for (let i = 1; i <= count; i++) {
+        const esMacho = Math.random() < 0.5;
+        const sexo = esMacho ? 'Macho' : 'Hembra';
+        const tipos = esMacho ? tiposMacho : tiposHembra;
+        const animalData = this.animalRepository.create({
+          caravana: `${prefix}-${String(i).padStart(3, '0')}`,
+          tipoAnimal: tipos[Math.floor(Math.random() * tipos.length)],
+          pelaje: pelajes[Math.floor(Math.random() * pelajes.length)],
+          sexo,
+          raza: razas[Math.floor(Math.random() * razas.length)],
+          fechaNacimiento: new Date(2020 + Math.floor(Math.random() * 4), Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1).toISOString().split('T')[0],
+          dueno: { id: owner.id } as User,
+        });
+        list.push(await this.animalRepository.save(animalData));
+      }
+      return list;
+    };
+
     try {
       console.log('Iniciando creación de datos de prueba para usuario demo:', user.id);
-      
-      // Asegurarse de que el usuario tenga la estructura correcta
-      const userEntity = { id: user.id } as User;
-      
-      // Crear animales de prueba (50 animales) usando repositorio directamente
-      const animales: Animal[] = [];
-      // Tipos consistentes con sexo
-      const tiposMacho = ['Toro', 'Novillo', 'Ternero'];
-      const tiposHembra = ['Vaca', 'Vaquilla', 'Ternera'];
-      const pelajes = ['Blanco/a', 'Valla', 'Valla Mocha', 'Colorada Mocha', 'Pampa', 'Negra Cara Blanca', 'Osco'];
-      const razas = ['Holando', 'Jersey', 'Angus', 'Hereford', 'Brahman'];
 
-      console.log('Creando 50 animales de prueba...');
-      for (let i = 1; i <= 50; i++) {
-        try {
-          // Determinar sexo aleatoriamente
-          const esMacho = Math.random() < 0.5;
-          const sexo = esMacho ? 'Macho' : 'Hembra';
-          
-          // Elegir tipo consistente con el sexo
-          const tiposDisponibles = esMacho ? tiposMacho : tiposHembra;
-          const tipoAnimal = tiposDisponibles[Math.floor(Math.random() * tiposDisponibles.length)];
-          
-          const pelajeIndex = Math.floor(Math.random() * pelajes.length);
-          const razaIndex = Math.floor(Math.random() * razas.length);
-          
-          const animalData = this.animalRepository.create({
-            caravana: `DEMO-${String(i).padStart(3, '0')}`,
-            tipoAnimal: tipoAnimal,
-            pelaje: pelajes[pelajeIndex],
-            sexo: sexo,
-            raza: razas[razaIndex],
-            fechaNacimiento: new Date(2020 + Math.floor(Math.random() * 4), Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1).toISOString().split('T')[0],
-            dueno: userEntity,
+      // Usuarios adicionales (nombres coinciden con ownerNombre del JSON de vacunación)
+      const extraUsersConfig = [
+        { nombre: 'Julio Terleski', email: 'julio.terleski@demo.com' },
+        { nombre: 'Elio Terleski', email: 'elio.terleski@demo.com' },
+        { nombre: 'Mariel Ojeda', email: 'mariel.ojeda@demo.com' },
+        { nombre: 'Ramon Diaz', email: 'ramon.diaz@demo.com' },
+      ];
+      const members: User[] = [];
+      for (const u of extraUsersConfig) {
+        let us = await this.usersService.findOneByEmail(u.email);
+        if (!us) {
+          await this.usersService.create({
+            nombre: u.nombre,
+            email: u.email,
+            password: AuthService.DEMO_PASSWORD,
           });
-          
-          const animal = await this.animalRepository.save(animalData);
-          animales.push(animal);
-          
-          if (i % 10 === 0) {
-            console.log(`Creados ${i} animales...`);
-          }
-        } catch (error) {
-          console.error(`Error creando animal ${i}:`, error);
+          us = await this.usersService.findOneByEmail(u.email);
+        }
+        if (us) members.push(us);
+      }
+      console.log('Usuarios de grupo creados o existentes:', members.length);
+
+      // Grupo "Tres Islas" (propietario demo, miembros: demo + los 4)
+      let grupoTresIslas = await this.groupRepository.findOne({ where: { nombre: 'Tres Islas' }, relations: ['miembros'] });
+      if (!grupoTresIslas) {
+        grupoTresIslas = this.groupRepository.create({
+          nombre: 'Tres Islas',
+          propietario: userEntity,
+        });
+        grupoTresIslas = await this.groupRepository.save(grupoTresIslas);
+        await this.groupMemberRepository.save(
+          this.groupMemberRepository.create({ group: grupoTresIslas, user: userEntity, role: 'Propietario' }),
+        );
+        for (const m of members) {
+          await this.groupMemberRepository.save(
+            this.groupMemberRepository.create({ group: grupoTresIslas!, user: m, role: 'Miembro' }),
+          );
+        }
+        console.log('Grupo Tres Islas creado');
+      }
+
+      // Animales: 30, 80, 140, 200 para los 4 usuarios y 50 para demo (total 500, >300)
+      const counts = [30, 80, 140, 200];
+      const animalesPorUsuario: Animal[] = [];
+      for (let i = 0; i < members.length && i < counts.length; i++) {
+        const created = await createAnimalesForUser(members[i], counts[i], `DEMO-${i + 1}`);
+        animalesPorUsuario.push(...created);
+        console.log(`Creados ${counts[i]} animales para ${members[i].nombre}`);
+      }
+      const animalesDemo = await createAnimalesForUser(user, 50, 'DEMO-0');
+      console.log('Creados 50 animales para Usuario Demo');
+      const todosAnimales = [...animalesDemo, ...animalesPorUsuario];
+      console.log('Total de animales creados:', todosAnimales.length);
+
+      // Grupos adicionales
+      const grupos: Group[] = [grupoTresIslas!];
+      for (const nombre of ['Grupo Demo 2', 'Grupo Demo 3']) {
+        let g = await this.groupRepository.findOne({ where: { nombre } });
+        if (!g) {
+          g = this.groupRepository.create({ nombre, propietario: userEntity });
+          g = await this.groupRepository.save(g);
+          await this.groupMemberRepository.save(
+            this.groupMemberRepository.create({ group: g, user: userEntity, role: 'Propietario' }),
+          );
+          grupos.push(g);
         }
       }
-      console.log(`Total de animales creados: ${animales.length}`);
 
-      // Crear grupos de prueba (2 grupos) usando repositorio directamente
-      const grupos: Group[] = [];
-      console.log('Creando 2 grupos de prueba...');
-      for (let i = 1; i <= 2; i++) {
-        try {
-          const grupoData = this.groupRepository.create({
-            nombre: `Grupo Demo ${i}`,
-            propietario: userEntity,
-          });
-          
-          const grupo = await this.groupRepository.save(grupoData);
-          
-          // Crear membresía del propietario
-          const membership = this.groupMemberRepository.create({
-            group: grupo,
-            user: userEntity,
-            role: 'Propietario',
-          });
-          await this.groupMemberRepository.save(membership);
-          
-          grupos.push(grupo);
-          console.log(`Grupo ${i} creado:`, grupo.id);
-        } catch (error) {
-          console.error(`Error creando grupo ${i}:`, error);
-        }
-      }
-      console.log(`Total de grupos creados: ${grupos.length}`);
-
-      // Crear campañas de vacunación de prueba (5 campañas) usando repositorio directamente
-      console.log('Creando 5 campañas de vacunación de prueba...');
+      // Campañas de prueba (usando animales del demo y del grupo)
       const productosVacunacion = ['Vacuna Triple', 'Vacuna Aftosa', 'Vacuna Brucelosis', 'Vacuna Carbunco', 'Vacuna Rabia'];
-      
       for (let i = 1; i <= 5; i++) {
-        try {
-          if (animales.length >= 3 && grupos.length > 0) {
-            // Seleccionar entre 3 y 10 animales aleatorios para cada campaña
-            const numAnimales = Math.min(3 + Math.floor(Math.random() * 8), animales.length);
-            const animalesSeleccionados = animales
-              .sort(() => Math.random() - 0.5)
-              .slice(0, numAnimales);
-            
-            // Asignar a un grupo aleatorio o sin grupo
-            const grupoSeleccionado = i <= 2 ? grupos[Math.floor(Math.random() * grupos.length)] : null;
-            
-            const fechaCampaña = new Date();
-            fechaCampaña.setDate(fechaCampaña.getDate() - (i * 30)); // Campañas con 30 días de diferencia
-            
-            const campaignData = this.campaignRepository.create({
-              nombre: `Campaña de Vacunación Demo ${i}`,
-              fecha: fechaCampaña.toISOString().split('T')[0],
-              productosUtilizados: productosVacunacion[i - 1] || 'Vacuna Triple',
-              observaciones: `Campaña de prueba ${i} para demostración`,
-              animales: animalesSeleccionados,
-              group: grupoSeleccionado ? { id: grupoSeleccionado.id } as Group : undefined,
-              propietario: grupoSeleccionado ? undefined : userEntity,
-            });
-            
-            await this.campaignRepository.save(campaignData);
-            console.log(`Campaña ${i} creada con ${numAnimales} animales`);
-          }
-        } catch (error) {
-          console.error(`Error creando campaña ${i}:`, error);
-        }
+        const numAnimales = Math.min(3 + Math.floor(Math.random() * 8), todosAnimales.length);
+        const seleccionados = todosAnimales.sort(() => Math.random() - 0.5).slice(0, numAnimales);
+        const fechaCampaña = new Date();
+        fechaCampaña.setDate(fechaCampaña.getDate() - i * 30);
+        const campaignData = this.campaignRepository.create({
+          nombre: `Campaña de Vacunación Demo ${i}`,
+          fecha: fechaCampaña.toISOString().split('T')[0],
+          productosUtilizados: productosVacunacion[i - 1] || 'Vacuna Triple',
+          observaciones: `Campaña de prueba ${i} para demostración`,
+          animales: seleccionados,
+          group: i <= 2 ? { id: grupoTresIslas!.id } as Group : undefined,
+          propietario: userEntity,
+        });
+        await this.campaignRepository.save(campaignData);
       }
-      console.log('Datos de prueba creados exitosamente');
+      console.log('Datos de prueba creados exitosamente (500+ animales, Tres Islas, 4 usuarios de grupo).');
     } catch (error) {
-      // Si hay error creando datos de prueba, no fallar el login
       console.error('Error creando datos de prueba para usuario demo:', error);
-      console.error('Stack trace:', error instanceof Error ? error.stack : 'No stack available');
+      if (error instanceof Error) console.error('Stack:', error.stack);
     }
   }
 

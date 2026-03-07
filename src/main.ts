@@ -8,6 +8,8 @@ import helmet from 'helmet';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  app.setGlobalPrefix('api');
+
   app.use(helmet());
   app.enableCors({
     origin: process.env.FRONTEND_URL || 'http://localhost:4200',
@@ -24,11 +26,14 @@ async function bootstrap() {
 
   app.useGlobalFilters(new TypeOrmExceptionFilter());
 
-  // Render usará la variable de entorno PORT; si no existe, usará 3000
   const port = process.env.PORT || 3000;
-  // Escuchar en '0.0.0.0' es crucial para que Docker exponga el puerto correctamente
-  await app.listen(port, '0.0.0.0');
-  
-  console.log(`La aplicación está corriendo en: ${await app.getUrl()}`);
+  const server = await app.listen(port, '0.0.0.0');
+
+  // Conexiones inestables: timeout alto para evitar cortes en operaciones lentas
+  server.setTimeout(60000); // 60 segundos
+  server.keepAliveTimeout = 65000;
+  server.headersTimeout = 66000;
+
+  console.log(`La aplicación está corriendo en: ${await app.getUrl()}/api`);
 }
 bootstrap();

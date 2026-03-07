@@ -11,7 +11,7 @@ import {
 import { Group } from '../../groups/entities/group.entity';
 import { GroupMember } from '../../groups/entities/group-member.entity';
 import { Animal } from '../../animals/entities/animal.entity';
-import { Campaign } from 'src/campaigns/entities/campaign.entity';
+import { Campaign } from '../../campaigns/entities/campaign.entity';
 
 @Entity({ name: 'users' })
 export class User {

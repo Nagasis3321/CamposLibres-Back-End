@@ -79,16 +79,24 @@ export class UsersService {
   }
 
   async findOneById(id: string): Promise<Omit<User, 'password'>> {
-    const user = await this.userRepository.findOne({ 
+    const user = await this.userRepository.findOne({
       where: { id },
       select: ['id', 'nombre', 'email', 'createdAt', 'updatedAt'],
     });
-    
+
     if (!user) {
       throw new NotFoundException(`Usuario con ID "${id}" no encontrado.`);
     }
 
     return user;
+  }
+
+  /** Busca un usuario por nombre exacto (para importación de datos). */
+  async findByNombre(nombre: string): Promise<User | null> {
+    return this.userRepository.findOne({
+      where: { nombre: nombre.trim() },
+      select: ['id', 'nombre', 'email'],
+    });
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<Omit<User, 'password'>> {

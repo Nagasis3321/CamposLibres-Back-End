@@ -9,4 +9,10 @@ export class AppController {
   getHello(): string {
     return this.appService.getHello();
   }
+
+  /** Para comprobaciones de salud (Docker, balanceadores, monitoreo). */
+  @Get('health')
+  getHealth(): { status: string } {
+    return { status: 'ok' };
+  }
 }

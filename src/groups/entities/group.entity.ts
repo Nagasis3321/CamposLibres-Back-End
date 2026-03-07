@@ -9,7 +9,7 @@ import {
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { GroupMember } from './group-member.entity';
-import { Campaign } from 'src/campaigns/entities/campaign.entity';
+import { Campaign } from '../../campaigns/entities/campaign.entity';
 
 @Entity({ name: 'groups' })
 export class Group {

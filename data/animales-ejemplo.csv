@@ -1,0 +1,6 @@
+caravana,tipoAnimal,pelaje,sexo,raza,fechaNacimiento,descripcion,duenoEmail
+DEMO-001,Vaca,Blanco/a,Hembra,Brahman,2020-01-15,Vaca lechera de alta producción,demo@example.com
+DEMO-002,Toro,Valla,Macho,Angus,2019-03-20,Toro reproductor,demo@example.com
+DEMO-003,Vaquilla,Osco,Hembra,Hereford,2022-06-10,Vaquilla en desarrollo,demo@example.com
+DEMO-004,Ternero,Pampa,Macho,Brahman,2024-01-05,Ternero recién nacido,demo@example.com
+DEMO-005,Ternera,Negra Cara Blanca,Hembra,Holstein,2024-02-12,Ternera en crecimiento,demo@example.com

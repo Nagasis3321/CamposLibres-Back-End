@@ -10,6 +10,7 @@ RUN npm run build
 # ---- Etapa 2: Producción ----
 # Crea la imagen final y ligera que se ejecutará en Render
 FROM node:20-alpine AS production
+RUN apk add --no-cache curl
 WORKDIR /usr/src/app
 # Copia el código compilado y el package.json desde la etapa anterior
 COPY --from=builder /usr/src/app/dist ./dist

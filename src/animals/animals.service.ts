@@ -13,6 +13,16 @@ import { GroupsService } from '../groups/groups.service';
 import { UpdateAnimalRelationsDto } from './dto/update-animal-relations.dto';
 import { PaginationQueryDto } from './dto/query-animal.dto';
 
+/** Unifica formato de pelaje: primera letra de cada palabra en mayúscula (ej: OSCA → Osca). */
+function normalizarPelaje(pelaje: string): string {
+  const trimmed = (pelaje || '').trim();
+  if (!trimmed) return 'Sin especificar';
+  return trimmed
+    .split(/\s+/)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(' ');
+}
+
 @Injectable()
 export class AnimalsService {
   constructor(
@@ -45,6 +55,7 @@ export class AnimalsService {
 
     const newAnimal = this.animalRepository.create({
       ...createAnimalDto,
+      pelaje: normalizarPelaje(createAnimalDto.pelaje ?? ''),
       dueno: { id: duenoId } as User,
     });
 
@@ -75,6 +86,9 @@ export class AnimalsService {
     userId: string,
   ): Promise<Animal> {
     const animal = await this.findOne(animalId, userId);
+    if (updateDto.pelaje !== undefined) {
+      (updateDto as any).pelaje = normalizarPelaje(updateDto.pelaje);
+    }
     Object.assign(animal, updateDto);
     return this.animalRepository.save(animal);
   }

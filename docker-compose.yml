@@ -1,4 +1,6 @@
 # Archivo: docker-compose.yml
+# Reconstruir solo backend (manteniendo BD): docker-compose down && docker-compose up --build -d
+# NUNCA usar: docker-compose down -v (borraría la base de datos)
 
 services:
   # Servicio de la API de NestJS
@@ -38,4 +40,5 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
 volumes:
+  # Persistencia de la BD; no se elimina con "docker-compose down" (solo con down -v)
   postgres_data:

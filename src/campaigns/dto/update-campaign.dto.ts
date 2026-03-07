@@ -23,7 +23,7 @@ export class UpdateCampaignDto {
 
   @IsArray()
   @IsUUID('4', { each: true })
-  @ArrayMinSize(1)
+  @ArrayMinSize(0)
   @IsOptional()
   animalesIds?: string[];
 }
